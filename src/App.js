@@ -7,16 +7,18 @@ function App() {
 
   const handleFileChange = async (event) => {
     const urls = await Promise.all(
-      [...event.target.files].map(async (file) => {
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = async (progressEvent) => {
-            const tga = await tgaUtils.openTga(progressEvent.target.result);
-            resolve(...tgaUtils.changeFormat(tga, ['image/png']));
-          };
-          reader.readAsDataURL(file);
-        });
-      })
+      [...event.target.files].map(
+        async (file) => new Promise(
+          (resolve) => {
+            const reader = new FileReader();
+            reader.onload = async (progressEvent) => {
+              const tga = await tgaUtils.openTga(progressEvent.target.result);
+              resolve(...tgaUtils.changeFormat(tga, ['image/png']));
+            };
+            reader.readAsDataURL(file);
+          }
+        )
+      )
     );
 
     setImages(urls);
