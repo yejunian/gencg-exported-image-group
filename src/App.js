@@ -1,4 +1,27 @@
+import { useState } from "react";
+
+import * as tgaUtils from './tgaUtils';
+
 function App() {
+  const [images, setImages] = useState([]);
+
+  const handleFileChange = async (event) => {
+    const urls = await Promise.all(
+      [...event.target.files].map(async (file) => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = async (progressEvent) => {
+            const tga = await tgaUtils.openTga(progressEvent.target.result);
+            resolve(...tgaUtils.changeFormat(tga, ['image/png']));
+          };
+          reader.readAsDataURL(file);
+        });
+      })
+    );
+
+    setImages(urls);
+  };
+
   return (
     <div>
       <h1>GenCG HD에서 추출한 이미지 PDF로 묶기</h1>
@@ -8,6 +31,7 @@ function App() {
         type="file"
         accept="image/x-targa,image/x-tga"
         multiple={true}
+        onChange={handleFileChange}
       />
       <ul>
         <li>Windows에서는 마지막 파일을 먼저 선택한 뒤, Shift 키를 누른 채로 첫 파일을 클릭합니다.</li>
