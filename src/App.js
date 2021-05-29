@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useState } from 'react';
+import imageCompression from 'browser-image-compression';
 
 import * as tgaUtils from './tgaUtils';
+
+const imageCompressionOptions = {
+  maxWidthOrHeight: 640,
+};
 
 function App() {
   const [images, setImages] = useState([]);
@@ -22,6 +27,18 @@ function App() {
     );
 
     setImages(urls);
+  };
+
+  const handleBuildClick = async () => {
+    const compressed = await Promise.all(
+      images.map(
+        async (image) => {
+          const file = await imageCompression.getFilefromDataUrl(image);
+          const compressed = await imageCompression(file, imageCompressionOptions);
+          return imageCompression.getDataUrlFromFile(compressed);
+        }
+      )
+    );
   };
 
   return (
@@ -54,7 +71,7 @@ function App() {
       <hr />
 
       <h2>3. PDF 생성</h2>
-      <button type="button">PDF 생성</button>
+      <button type="button" onClick={handleBuildClick}>PDF 생성</button>
     </div>
   );
 }
