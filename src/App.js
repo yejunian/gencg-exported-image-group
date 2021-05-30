@@ -2,7 +2,7 @@ import { useState } from 'react';
 import imageCompression from 'browser-image-compression';
 import { jsPDF } from 'jspdf';
 
-import * as tgaUtils from './tgaUtils';
+import openTga from './openTga';
 
 const imageCompressionOptions = {
   maxWidthOrHeight: 960,
@@ -29,7 +29,7 @@ function App() {
           (resolve) => {
             const reader = new FileReader();
             reader.onload = async (progressEvent) => {
-              const tga = await tgaUtils.openTga(progressEvent.target.result);
+              const tga = await openTga(progressEvent.target.result);
               completedCount += 1;
               setCompleted(completedCount);
               resolve(tga.getDataURL('image/png'));
