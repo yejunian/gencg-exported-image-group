@@ -13,18 +13,22 @@ function App() {
   const [completed, setCompleted] = useState(0);
   const [targetCount, setTargetCount] = useState(0);
   const [progressing, setProgressing] = useState(false);
-  const [images, setImages] = useState([]);
+  const [tgaFiles, setTgaFiles] = useState([]);
 
   const handleFileChange = async (event) => {
+    setTgaFiles([...event.target.files]);
+  };
+
+  const handleBuildClick = async () => {
     setProgressing(true);
 
     let completedCount = 0;
-    setStep('TGA → PNG 변환(0%에서 오래 걸릴 수 있음)');
+    setStep('1. TGA → PNG 변환(0%에서 오래 걸릴 수 있음)');
     setCompleted(0);
-    setTargetCount(event.target.files.length);
+    setTargetCount(tgaFiles.length);
 
-    const urls = await Promise.all(
-      [...event.target.files].map(
+    const images = await Promise.all(
+      tgaFiles.map(
         async (file) => new Promise(
           (resolve) => {
             const reader = new FileReader();
@@ -40,16 +44,8 @@ function App() {
       )
     );
 
-    setImages(urls);
-
-    setProgressing(false);
-  };
-
-  const handleBuildClick = async () => {
-    setProgressing(true);
-
-    let completedCount = 0;
-    setStep('이미지 축소 및 PDF 빌드');
+    completedCount = 0;
+    setStep('2. 이미지 축소 및 PDF 빌드');
     setCompleted(0);
 
     const compressed = await Promise.all(
@@ -94,7 +90,6 @@ function App() {
   return (
     <div>
       <h1>GenCG HD에서 추출한 이미지 PDF로 묶기</h1>
-      {step && <div>{step}: {completed}/{targetCount}</div>}
 
       <h2>1. 이미지 파일 선택</h2>
       <input
@@ -123,11 +118,16 @@ function App() {
       <hr />
 
       <h2>3. PDF 생성</h2>
-      <button
-        type="button"
-        disabled={progressing}
-        onClick={handleBuildClick}
-      >PDF 생성</button>
+      <p>
+        <button
+          type="button"
+          disabled={progressing}
+          onClick={handleBuildClick}
+        >
+          PDF 생성
+        </button>
+      </p>
+      {step && <p>{step}: {completed}/{targetCount}</p>}
     </div>
   );
 }
