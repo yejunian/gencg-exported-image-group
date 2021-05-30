@@ -4,16 +4,14 @@ import { jsPDF } from 'jspdf';
 
 import openTga from './openTga';
 
-const imageCompressionOptions = {
-  maxWidthOrHeight: 960,
-};
-
 function App() {
   const [step, setStep] = useState('');
   const [completed, setCompleted] = useState(0);
   const [targetCount, setTargetCount] = useState(0);
   const [progressing, setProgressing] = useState(false);
   const [tgaFiles, setTgaFiles] = useState([]);
+  const [pdfWidth, setPdfWidth] = useState(640);
+  const [pdfHeight, setPdfHeight] = useState(360);
 
   const handleFileChange = async (event) => {
     setTgaFiles([...event.target.files]);
@@ -59,7 +57,7 @@ function App() {
       images.map(
         async (image) => {
           const file = await imageCompression.getFilefromDataUrl(image);
-          const compressed = await imageCompression(file, imageCompressionOptions);
+          const compressed = await imageCompression(file, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight) });
           completedCount += 1;
           setCompleted(completedCount === targetCount ? targetCount - 1 : completedCount);
           return imageCompression.getDataUrlFromFile(compressed);
@@ -68,25 +66,26 @@ function App() {
     );
 
     const pdf = new jsPDF({
-      orientation: 'landscape',
+      orientation: pdfWidth >= pdfHeight ? 'landscape' : 'portrait',
       unit: 'pt',
-      format: [960, 540],
+      format: [pdfWidth, pdfHeight],
     });
     pdf.deletePage(1);
 
+    const pdfShortSide = Math.min(pdfWidth, pdfHeight);
     compressed.forEach(
       (image, index) => pdf
         .addPage()
-        .setFillColor('#808080')
-        .rect(-10, -10, 980, 560, 'F')
-        .addImage(image, 0, 0, 960, 540)
+        .setFillColor('#5e5e5e')
+        .rect(-10, -10, pdfWidth + 20, pdfHeight + 20, 'F')
+        .addImage(image, 0, 0, pdfWidth, pdfHeight)
         .setFont('Helvetica', '', 'Bold')
-        .setFontSize(54)
-        .setLineWidth(8.1)
+        .setFontSize(pdfShortSide * 0.09375)
+        .setLineWidth(pdfShortSide * 0.015625)
         .setDrawColor('#ffffff')
         .setTextColor('#000000')
-        .text(String(index + 1), 912, 27, { align: 'right', baseline: 'top', renderingMode: 'stroke' })
-        .text(String(index + 1), 912, 27, { align: 'right', baseline: 'top', renderingMode: 'fill' })
+        .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'stroke' })
+        .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'fill' })
     );
 
     setCompleted(targetCount);
@@ -94,6 +93,11 @@ function App() {
 
     setProgressing(false);
   };
+
+  const handleInputChangeWith = (setState) => (event) => setState(event.target.value);
+
+  const handlePdfWidthChange = handleInputChangeWith(setPdfWidth);
+  const handlePdfHeightChange = handleInputChangeWith(setPdfHeight);
 
   return (
     <div>
@@ -117,8 +121,21 @@ function App() {
       <h2>2. 출력 설정</h2>
       <p>기본 출력 설정은 다음과 같습니다.</p>
       <ul>
-        <li>PDF 크기: 960x540</li>
-        <li>배경색: #808080</li>
+        <li>
+          PDF 크기:{' '}
+          <input
+            type="number"
+            value={pdfWidth}
+            onChange={handlePdfWidthChange}
+          />
+          {' x '}
+          <input
+            type="number"
+            value={pdfHeight}
+            onChange={handlePdfHeightChange}
+          />
+        </li>
+        <li>배경색: #5e5e5e</li>
         <li>PNG/JPG 자동 결정: 아니오(PNG 사용)</li>
         <li>페이지 번호 표시: 예</li>
       </ul>
