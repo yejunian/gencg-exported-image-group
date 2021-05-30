@@ -12,6 +12,7 @@ function App() {
   const [tgaFiles, setTgaFiles] = useState([]);
   const [pdfWidth, setPdfWidth] = useState(640);
   const [pdfHeight, setPdfHeight] = useState(360);
+  const [pdfBackgroundColor, setPdfBackgroundColor] = useState('#5e5e5e');
 
   const handleFileChange = async (event) => {
     setTgaFiles([...event.target.files]);
@@ -76,7 +77,7 @@ function App() {
     compressed.forEach(
       (image, index) => pdf
         .addPage()
-        .setFillColor('#5e5e5e')
+        .setFillColor(pdfBackgroundColor)
         .rect(-10, -10, pdfWidth + 20, pdfHeight + 20, 'F')
         .addImage(image, 0, 0, pdfWidth, pdfHeight)
         .setFont('Helvetica', '', 'Bold')
@@ -98,6 +99,7 @@ function App() {
 
   const handlePdfWidthChange = handleInputChangeWith(setPdfWidth);
   const handlePdfHeightChange = handleInputChangeWith(setPdfHeight);
+  const handlePdfBackgroundColorChange = handleInputChangeWith(setPdfBackgroundColor);
 
   return (
     <div>
@@ -135,7 +137,15 @@ function App() {
             onChange={handlePdfHeightChange}
           />
         </li>
-        <li>배경색: #5e5e5e</li>
+        <li>
+          배경색:{' '}
+          <input
+            type="color"
+            value={pdfBackgroundColor}
+            onChange={handlePdfBackgroundColorChange}
+          />
+          {' ' + pdfBackgroundColor}
+        </li>
         <li>PNG/JPG 자동 결정: 아니오(PNG 사용)</li>
         <li>페이지 번호 표시: 예</li>
       </ul>
