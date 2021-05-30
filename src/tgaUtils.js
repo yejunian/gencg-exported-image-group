@@ -8,7 +8,3 @@ export function openTga(url) {
     });
   });
 };
-
-export function changeFormat(tga, mimeTypes) {
-  return mimeTypes.map((mimeType => tga.getDataURL(mimeType)));
-};

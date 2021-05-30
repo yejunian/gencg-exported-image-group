@@ -32,7 +32,7 @@ function App() {
               const tga = await tgaUtils.openTga(progressEvent.target.result);
               completedCount += 1;
               setCompleted(completedCount);
-              resolve(...tgaUtils.changeFormat(tga, ['image/png']));
+              resolve(tga.getDataURL('image/png'));
             };
             reader.readAsDataURL(file);
           }
