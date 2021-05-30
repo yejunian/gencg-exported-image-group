@@ -23,9 +23,9 @@ function App() {
     setProgressing(true);
 
     let completedCount = 0;
-    setStep('1. TGA → PNG 변환(0%에서 오래 걸릴 수 있음)');
+    setStep('[1/2] TGA 로드 및 PNG 변환');
     setCompleted(0);
-    setTargetCount(tgaFiles.length);
+    setTargetCount(tgaFiles.length * 2); // 2 phase: Load TGA -> Convert to PNG
 
     const images = await Promise.all(
       tgaFiles.map(
@@ -33,10 +33,16 @@ function App() {
           (resolve) => {
             const reader = new FileReader();
             reader.onload = async (progressEvent) => {
-              const tga = await openTga(progressEvent.target.result);
-              completedCount += 1;
+              completedCount += 1; // Load TGA
               setCompleted(completedCount);
-              resolve(tga.getDataURL('image/png'));
+
+              const tga = await openTga(progressEvent.target.result);
+              const png = tga.getDataURL('image/png');
+
+              completedCount += 1; // Convert to PNG
+              setCompleted(completedCount);
+
+              resolve(png);
             };
             reader.readAsDataURL(file);
           }
@@ -45,8 +51,9 @@ function App() {
     );
 
     completedCount = 0;
-    setStep('2. 이미지 축소 및 PDF 빌드');
+    setStep('[2/2] 이미지 축소 및 PDF 빌드');
     setCompleted(0);
+    setTargetCount(images.length);
 
     const compressed = await Promise.all(
       images.map(
@@ -54,7 +61,7 @@ function App() {
           const file = await imageCompression.getFilefromDataUrl(image);
           const compressed = await imageCompression(file, imageCompressionOptions);
           completedCount += 1;
-          setCompleted(completedCount);
+          setCompleted(completedCount === targetCount ? targetCount - 1 : completedCount);
           return imageCompression.getDataUrlFromFile(compressed);
         }
       )
@@ -82,6 +89,7 @@ function App() {
         .text(String(index + 1), 912, 27, { align: 'right', baseline: 'top', renderingMode: 'fill' })
     );
 
+    setCompleted(targetCount);
     pdf.save();
 
     setProgressing(false);
@@ -125,9 +133,12 @@ function App() {
           onClick={handleBuildClick}
         >
           PDF 생성
-        </button>
+        </button> {step && targetCount > 0 &&
+          <progress value={completed} max={targetCount}>
+            {Math.floor(completed / targetCount * 100)}%
+          </progress>}
       </p>
-      {step && <p>{step}: {completed}/{targetCount}</p>}
+      {step && targetCount > 0 && <p>{step} ({Math.floor(completed / targetCount * 100)}%)</p>}
     </div>
   );
 }
