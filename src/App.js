@@ -71,7 +71,20 @@ function App() {
     });
     pdf.deletePage(1);
 
-    compressed.forEach((image) => pdf.addPage().setFillColor(128, 128, 128).rect(-10, -10, 980, 560, 'F').addImage(image, 0, 0, 960, 540));
+    compressed.forEach(
+      (image, index) => pdf
+        .addPage()
+        .setFillColor('#808080')
+        .rect(-10, -10, 980, 560, 'F')
+        .addImage(image, 0, 0, 960, 540)
+        .setFont('Helvetica', '', 'Bold')
+        .setFontSize(54)
+        .setLineWidth(8.1)
+        .setDrawColor('#ffffff')
+        .setTextColor('#000000')
+        .text(String(index + 1), 912, 27, { align: 'right', baseline: 'top', renderingMode: 'stroke' })
+        .text(String(index + 1), 912, 27, { align: 'right', baseline: 'top', renderingMode: 'fill' })
+    );
 
     pdf.save();
 
@@ -104,7 +117,7 @@ function App() {
         <li>PDF 크기: 960x540</li>
         <li>배경색: #808080</li>
         <li>PNG/JPG 자동 결정: 아니오(PNG 사용)</li>
-        <li>페이지 번호 표시: 아니오</li>
+        <li>페이지 번호 표시: 예</li>
       </ul>
 
       <hr />
