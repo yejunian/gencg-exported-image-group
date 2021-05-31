@@ -5,10 +5,10 @@ import { jsPDF } from 'jspdf';
 import openTga from './openTga';
 
 function App() {
-  const [step, setStep] = useState('');
-  const [completed, setCompleted] = useState(0);
+  const [completedCount, setCompletedCount] = useState(0);
   const [targetCount, setTargetCount] = useState(0);
-  const [progressing, setProgressing] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [isProgressing, setIsProgressing] = useState(false);
   const [tgaFiles, setTgaFiles] = useState([]);
   const [pdfWidth, setPdfWidth] = useState(640);
   const [pdfHeight, setPdfHeight] = useState(360);
@@ -19,12 +19,12 @@ function App() {
   };
 
   const handleBuildClick = async () => {
-    setProgressing(true);
+    setIsProgressing(true);
+    const begin = new Date().getTime();
 
-    let completedCount = 0;
-    setStep('[1/2] TGA 로드 및 PNG 변환');
-    setCompleted(0);
-    setTargetCount(tgaFiles.length * 2); // 2 phase: Load TGA -> Convert to PNG
+    let completedCountLocal = 0;
+    setCompletedCount(0);
+    setTargetCount(tgaFiles.length + 1);
 
     const images = await Promise.all(
       tgaFiles.map(
@@ -32,37 +32,47 @@ function App() {
           (resolve) => {
             const reader = new FileReader();
             reader.onload = async (progressEvent) => {
-              completedCount += 1; // Load TGA
-              setCompleted(completedCount);
+              completedCountLocal += 0.34375; // -2, -4, -5; 0.01011
+              setCompletedCount(completedCountLocal);
+              setDuration(new Date().getTime() - begin);
 
               const tga = await openTga(progressEvent.target.result);
-              const png = tga.getDataURL('image/png');
 
-              completedCount += 1; // Convert to PNG
-              setCompleted(completedCount);
+              completedCountLocal += 0.5625; // -1, -4; 0.1001
+              setCompletedCount(completedCountLocal);
+              setDuration(new Date().getTime() - begin);
 
-              resolve(png);
+              const tgaCanvas = tga.getCanvas();
+              const canvas = document.createElement('canvas');
+              canvas.width = tgaCanvas.width;
+              canvas.height = tgaCanvas.height;
+
+              const ctx = canvas.getContext('2d');
+              ctx.fillStyle = pdfBackgroundColor;
+              ctx.fillRect(-10, -10, canvas.width + 20, canvas.height + 20);
+              ctx.drawImage(tgaCanvas, 0, 0, canvas.width, canvas.height);
+
+              const png = await imageCompression.canvasToFile(canvas, 'image/png');
+              const compressedPng = await imageCompression(png, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight) });
+              const base64Png = await imageCompression.getDataUrlFromFile(compressedPng);
+
+              const jpg = await imageCompression.canvasToFile(canvas, 'image/jpeg');
+              const compressedJpg = await imageCompression(jpg, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight), initialQuality: 0.9 });
+              const base64Jpg = await imageCompression.getDataUrlFromFile(compressedJpg);
+
+              completedCountLocal += 0.09375; // -4, -5; 0.00011
+              setCompletedCount(completedCountLocal);
+              setDuration(new Date().getTime() - begin);
+
+              if (base64Png.length - 22 <= (base64Jpg.length - 23) * 1.1) {
+                resolve(base64Png);
+              } else {
+                resolve(base64Jpg);
+              }
             };
             reader.readAsDataURL(file);
           }
         )
-      )
-    );
-
-    completedCount = 0;
-    setStep('[2/2] 이미지 축소 및 PDF 빌드');
-    setCompleted(0);
-    setTargetCount(images.length);
-
-    const compressed = await Promise.all(
-      images.map(
-        async (image) => {
-          const file = await imageCompression.getFilefromDataUrl(image);
-          const compressed = await imageCompression(file, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight) });
-          completedCount += 1;
-          setCompleted(completedCount === targetCount ? targetCount - 1 : completedCount);
-          return imageCompression.getDataUrlFromFile(compressed);
-        }
       )
     );
 
@@ -74,7 +84,7 @@ function App() {
     pdf.deletePage(1);
 
     const pdfShortSide = Math.min(pdfWidth, pdfHeight);
-    compressed.forEach(
+    images.forEach(
       (image, index) => pdf
         .addPage()
         .setFillColor(pdfBackgroundColor)
@@ -89,10 +99,12 @@ function App() {
         .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'fill' })
     );
 
-    setCompleted(targetCount);
     pdf.save();
 
-    setProgressing(false);
+    completedCountLocal += 1;
+    setCompletedCount(completedCountLocal);
+    setDuration(new Date().getTime() - begin);
+    setIsProgressing(false);
   };
 
   const handleInputChangeWith = (setState) => (event) => setState(event.target.value);
@@ -110,7 +122,7 @@ function App() {
         type="file"
         accept="image/x-targa,image/x-tga"
         multiple={true}
-        disabled={progressing}
+        disabled={isProgressing}
         onChange={handleFileChange}
       />
       <ul>
@@ -121,7 +133,6 @@ function App() {
       <hr />
 
       <h2>2. 출력 설정</h2>
-      <p>기본 출력 설정은 다음과 같습니다.</p>
       <ul>
         <li>
           PDF 크기:{' '}
@@ -146,26 +157,33 @@ function App() {
           />
           {' ' + pdfBackgroundColor}
         </li>
-        <li>PNG/JPG 자동 결정: 아니오(PNG 사용)</li>
         <li>페이지 번호 표시: 예</li>
       </ul>
 
       <hr />
 
       <h2>3. PDF 생성</h2>
+      <p>주의: 전원을 연결하지 않은 경우 배터리 소모가 많을 수 있습니다.</p>
       <p>
         <button
           type="button"
-          disabled={progressing}
+          disabled={isProgressing}
           onClick={handleBuildClick}
         >
           PDF 생성
-        </button> {step && targetCount > 0 &&
-          <progress value={completed} max={targetCount}>
-            {Math.floor(completed / targetCount * 100)}%
-          </progress>}
+        </button>
+        {' '}
+        {targetCount > 0 &&
+          <>
+            <progress value={completedCount} max={targetCount}>
+              {Math.floor(completedCount / targetCount * 100)}%
+            </progress>
+            {' '}
+            {(completedCount / targetCount * 100).toFixed(2)}%
+            {' '}
+            ({Math.floor(duration / 1000)}초 경과)
+          </>}
       </p>
-      {step && targetCount > 0 && <p>{step} ({Math.floor(completed / targetCount * 100)}%)</p>}
     </div>
   );
 }
