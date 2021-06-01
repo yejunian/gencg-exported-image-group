@@ -13,6 +13,7 @@ function App() {
   const [pdfWidth, setPdfWidth] = useState(640);
   const [pdfHeight, setPdfHeight] = useState(360);
   const [pdfBackgroundColor, setPdfBackgroundColor] = useState('#5e5e5e');
+  const [displayPageNumbers, setDisplayPageNumbers] = useState(true);
 
   const handleFileChange = async (event) => {
     setTgaFiles([...event.target.files]);
@@ -85,18 +86,21 @@ function App() {
 
     const pdfShortSide = Math.min(pdfWidth, pdfHeight);
     images.forEach(
-      (image, index) => pdf
-        .addPage()
-        .setFillColor(pdfBackgroundColor)
-        .rect(-10, -10, pdfWidth + 20, pdfHeight + 20, 'F')
-        .addImage(image, 0, 0, pdfWidth, pdfHeight)
-        .setFont('Helvetica', '', 'Bold')
-        .setFontSize(pdfShortSide * 0.09375)
-        .setLineWidth(pdfShortSide * 0.015625)
-        .setDrawColor('#ffffff')
-        .setTextColor('#000000')
-        .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'stroke' })
-        .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'fill' })
+      (image, index) => {
+        pdf.addPage()
+          .setFillColor(pdfBackgroundColor)
+          .rect(-10, -10, pdfWidth + 20, pdfHeight + 20, 'F')
+          .addImage(image, 0, 0, pdfWidth, pdfHeight);
+        if (displayPageNumbers) {
+          pdf.setFont('Helvetica', '', 'Bold')
+            .setFontSize(pdfShortSide * 0.09375)
+            .setLineWidth(pdfShortSide * 0.015625)
+            .setDrawColor('#ffffff')
+            .setTextColor('#000000')
+            .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'stroke' })
+            .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'fill' });
+        }
+      }
     );
 
     pdf.save();
@@ -108,10 +112,12 @@ function App() {
   };
 
   const handleInputChangeWith = (setState) => (event) => setState(event.target.value);
-
   const handlePdfWidthChange = handleInputChangeWith(setPdfWidth);
   const handlePdfHeightChange = handleInputChangeWith(setPdfHeight);
   const handlePdfBackgroundColorChange = handleInputChangeWith(setPdfBackgroundColor);
+
+  const handleCheckboxChangeWith = (setState) => (event) => setState(event.target.checked);
+  const handleDisplayPageNumbers = handleCheckboxChangeWith(setDisplayPageNumbers)
 
   return (
     <div>
@@ -157,7 +163,7 @@ function App() {
           />
           {' ' + pdfBackgroundColor}
         </li>
-        <li>페이지 번호 표시: 예</li>
+        <li>페이지 번호 표시: <input type="checkbox" checked={displayPageNumbers} onChange={handleDisplayPageNumbers} /></li>
       </ul>
 
       <hr />
@@ -167,7 +173,7 @@ function App() {
       <p>
         <button
           type="button"
-          disabled={isProgressing}
+          disabled={isProgressing || tgaFiles.length === 0}
           onClick={handleBuildClick}
         >
           PDF 생성
