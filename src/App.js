@@ -10,8 +10,8 @@ function App() {
   const [duration, setDuration] = useState(0);
   const [isProgressing, setIsProgressing] = useState(false);
   const [tgaFiles, setTgaFiles] = useState([]);
-  const [pdfWidth, setPdfWidth] = useState(640);
-  const [pdfHeight, setPdfHeight] = useState(360);
+  const [pdfWidth, setPdfWidth] = useState(960);
+  const [pdfHeight, setPdfHeight] = useState(540);
   const [pdfBackgroundColor, setPdfBackgroundColor] = useState('#5e5e5e');
   const [displayPageNumbers, setDisplayPageNumbers] = useState(true);
 
