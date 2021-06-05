@@ -129,7 +129,7 @@ function App() {
       <h2>1. 이미지 파일 선택</h2>
       <input
         type="file"
-        accept="image/x-targa,image/x-tga"
+        accept="image/x-targa,image/x-tga,.tga"
         multiple={true}
         disabled={isProgressing}
         onChange={handleFileChange}
