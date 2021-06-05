@@ -10,9 +10,10 @@ function App() {
   const [duration, setDuration] = useState(0);
   const [isProgressing, setIsProgressing] = useState(false);
   const [tgaFiles, setTgaFiles] = useState([]);
-  const [pdfWidth, setPdfWidth] = useState(640);
-  const [pdfHeight, setPdfHeight] = useState(360);
+  const [pdfWidth, setPdfWidth] = useState(960);
+  const [pdfHeight, setPdfHeight] = useState(540);
   const [pdfBackgroundColor, setPdfBackgroundColor] = useState('#5e5e5e');
+  const [displayPageNumbers, setDisplayPageNumbers] = useState(true);
 
   const handleFileChange = async (event) => {
     setTgaFiles([...event.target.files]);
@@ -85,18 +86,21 @@ function App() {
 
     const pdfShortSide = Math.min(pdfWidth, pdfHeight);
     images.forEach(
-      (image, index) => pdf
-        .addPage()
-        .setFillColor(pdfBackgroundColor)
-        .rect(-10, -10, pdfWidth + 20, pdfHeight + 20, 'F')
-        .addImage(image, 0, 0, pdfWidth, pdfHeight)
-        .setFont('Helvetica', '', 'Bold')
-        .setFontSize(pdfShortSide * 0.09375)
-        .setLineWidth(pdfShortSide * 0.015625)
-        .setDrawColor('#ffffff')
-        .setTextColor('#000000')
-        .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'stroke' })
-        .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'fill' })
+      (image, index) => {
+        pdf.addPage()
+          .setFillColor(pdfBackgroundColor)
+          .rect(-10, -10, pdfWidth + 20, pdfHeight + 20, 'F')
+          .addImage(image, 0, 0, pdfWidth, pdfHeight);
+        if (displayPageNumbers) {
+          pdf.setFont('Helvetica', '', 'Bold')
+            .setFontSize(pdfShortSide * 0.09375)
+            .setLineWidth(pdfShortSide * 0.015625)
+            .setDrawColor('#ffffff')
+            .setTextColor('#000000')
+            .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'stroke' })
+            .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'fill' });
+        }
+      }
     );
 
     pdf.save();
@@ -108,10 +112,12 @@ function App() {
   };
 
   const handleInputChangeWith = (setState) => (event) => setState(event.target.value);
-
   const handlePdfWidthChange = handleInputChangeWith(setPdfWidth);
   const handlePdfHeightChange = handleInputChangeWith(setPdfHeight);
   const handlePdfBackgroundColorChange = handleInputChangeWith(setPdfBackgroundColor);
+
+  const handleCheckboxChangeWith = (setState) => (event) => setState(event.target.checked);
+  const handleDisplayPageNumbers = handleCheckboxChangeWith(setDisplayPageNumbers)
 
   return (
     <div>
@@ -128,6 +134,7 @@ function App() {
       <ul>
         <li>Windows에서는 마지막 파일을 먼저 선택한 뒤, Shift 키를 누른 채로 첫 파일을 클릭합니다.</li>
         <li>MacOS에서는 첫 파일을 먼저 선택한 뒤, Shift 키를 누른 채로 마지막 파일을 선택합니다.</li>
+        <li>또는 전체 선택(Ctrl+A / {'\u2318'}A)로 현재 폴더의 모든 파일을 선택합니다.</li>
       </ul>
 
       <hr />
@@ -157,17 +164,20 @@ function App() {
           />
           {' ' + pdfBackgroundColor}
         </li>
-        <li>페이지 번호 표시: 예</li>
+        <li>페이지 번호 표시: <input type="checkbox" checked={displayPageNumbers} onChange={handleDisplayPageNumbers} /></li>
       </ul>
 
       <hr />
 
       <h2>3. PDF 생성</h2>
-      <p>주의: 전원을 연결하지 않은 경우 배터리 소모가 많을 수 있습니다.</p>
+      <ul>
+        <li>아직 메모리 최적화가 안 되어서 메모리를 많이 사용합니다. PDF 생성 완료 후에는 쾌적한 기기 사용을 위해 탭을 닫는 것을 권장합니다.</li>
+        <li>배터리를 사용하는 경우 배터리 소모가 많을 수 있습니다.</li>
+      </ul>
       <p>
         <button
           type="button"
-          disabled={isProgressing}
+          disabled={isProgressing || tgaFiles.length === 0}
           onClick={handleBuildClick}
         >
           PDF 생성
