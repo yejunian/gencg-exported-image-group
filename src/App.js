@@ -15,8 +15,11 @@ function App() {
   const [pdfBackgroundColor, setPdfBackgroundColor] = useState('#5e5e5e');
   const [displayPageNumbers, setDisplayPageNumbers] = useState(true);
 
-  const handleFileChange = async (event) => {
-    setTgaFiles([...event.target.files]);
+  const handleFileChange = (event) => {
+    setTgaFiles(
+      [...event.target.files]
+        .sort((a, b) => a.name < b.name ? -1 : 1) // `a.name !== b.name` is always `true`
+    );
   };
 
   const handleBuildClick = async () => {
