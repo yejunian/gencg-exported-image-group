@@ -63,14 +63,16 @@ function App() {
               const compressedJpg = await imageCompression(png, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight), initialQuality: 0.9, fileType: 'image/jpeg' });
               const base64Jpg = await imageCompression.getDataUrlFromFile(compressedJpg);
 
+              const pageNumber = Number.parseInt(file.name.replace(/^\D*?(\d+)\.tga$/i, '$1'), 10);
+
               completedCountLocal += 0.09375; // -4, -5; 0.00011
               setCompletedCount(completedCountLocal);
               setDuration(new Date().getTime() - begin);
 
               if (base64Png.length - 22 <= (base64Jpg.length - 23) * 1.1) {
-                resolve(base64Png);
+                resolve({ pageNumber, image: base64Png });
               } else {
-                resolve(base64Jpg);
+                resolve({ pageNumber, image: base64Jpg });
               }
             };
             reader.readAsDataURL(file);
@@ -88,7 +90,7 @@ function App() {
 
     const pdfShortSide = Math.min(pdfWidth, pdfHeight);
     images.forEach(
-      (image, index) => {
+      ({ pageNumber, image }, index) => {
         pdf.addPage()
           .setFillColor(pdfBackgroundColor)
           .rect(-10, -10, pdfWidth + 20, pdfHeight + 20, 'F')
@@ -99,8 +101,18 @@ function App() {
             .setLineWidth(pdfShortSide * 0.015625)
             .setDrawColor('#ffffff')
             .setTextColor('#000000')
-            .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'stroke' })
-            .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'fill' });
+            .text(
+              String(pageNumber || (index + 1)),
+              pdfWidth * 0.9375,
+              pdfHeight * 0.0625,
+              { align: 'right', baseline: 'top', renderingMode: 'stroke' },
+            )
+            .text(
+              String(pageNumber || (index + 1)),
+              pdfWidth * 0.9375,
+              pdfHeight * 0.0625,
+              { align: 'right', baseline: 'top', renderingMode: 'fill' },
+            );
         }
       }
     );
