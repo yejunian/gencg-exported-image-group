@@ -191,9 +191,7 @@ function App() {
               {Math.floor(completedCount / targetCount * 100)}%
             </progress>
             {' '}
-            {(completedCount / targetCount * 100).toFixed(2)}%
-            {' '}
-            ({Math.floor(duration / 1000)}초 경과)
+            {(completedCount / targetCount * 100).toFixed(2)}%까지 {Math.floor(duration / 1000)}초 경과
           </>}
       </p>
     </div>
