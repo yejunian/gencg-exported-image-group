@@ -60,8 +60,7 @@ function App() {
               const compressedPng = await imageCompression(png, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight) });
               const base64Png = await imageCompression.getDataUrlFromFile(compressedPng);
 
-              const jpg = await imageCompression.canvasToFile(canvas, 'image/jpeg');
-              const compressedJpg = await imageCompression(jpg, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight), initialQuality: 0.9 });
+              const compressedJpg = await imageCompression(png, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight), initialQuality: 0.9, fileType: 'image/jpeg' });
               const base64Jpg = await imageCompression.getDataUrlFromFile(compressedJpg);
 
               completedCountLocal += 0.09375; // -4, -5; 0.00011
