@@ -60,7 +60,10 @@ function App() {
               const compressedPng = await imageCompression(png, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight) });
               const base64Png = await imageCompression.getDataUrlFromFile(compressedPng);
 
-              const compressedJpg = await imageCompression(png, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight), initialQuality: 0.9, fileType: 'image/jpeg' });
+              const compressedJpg = await imageCompression(
+                png,
+                { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight), initialQuality: 0.9, fileType: 'image/jpeg' },
+              );
               const base64Jpg = await imageCompression.getDataUrlFromFile(compressedJpg);
 
               const pageNumber = Number.parseInt(file.name.replace(/^\D*?(\d+)\.tga$/i, '$1'), 10);
@@ -178,14 +181,19 @@ function App() {
           />
           {' ' + pdfBackgroundColor}
         </li>
-        <li>페이지 번호 표시: <input type="checkbox" checked={displayPageNumbers} onChange={handleDisplayPageNumbers} /></li>
+        <li>
+          페이지 번호 표시: <input type="checkbox" checked={displayPageNumbers} onChange={handleDisplayPageNumbers} />
+        </li>
       </ul>
 
       <hr />
 
       <h2>3. PDF 생성</h2>
       <ul>
-        <li>아직 메모리 최적화가 안 되어서 메모리를 많이 사용합니다. PDF 생성 완료 후에는 쾌적한 기기 사용을 위해 탭을 닫는 것을 권장합니다.</li>
+        <li>
+          아직 메모리 최적화가 안 되어서 메모리를 많이 사용합니다.
+          PDF 생성 완료 후에는 쾌적한 기기 사용을 위해 탭을 닫는 것을 권장합니다.
+        </li>
         <li>배터리를 사용하는 경우 배터리 소모가 많을 수 있습니다.</li>
       </ul>
       <p>
