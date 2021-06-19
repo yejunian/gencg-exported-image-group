@@ -14,6 +14,7 @@ function App() {
   const [pdfHeight, setPdfHeight] = useState(540);
   const [pdfBackgroundColor, setPdfBackgroundColor] = useState('#5e5e5e');
   const [displayPageNumbers, setDisplayPageNumbers] = useState(true);
+  const [filename, setFilename] = useState('generated');
 
   const handleFileChange = (event) => {
     setTgaFiles(
@@ -120,7 +121,7 @@ function App() {
       }
     );
 
-    pdf.save();
+    pdf.save(`${filename}.pdf`);
 
     completedCountLocal += 1;
     setCompletedCount(completedCountLocal);
@@ -132,6 +133,7 @@ function App() {
   const handlePdfWidthChange = handleInputChangeWith(setPdfWidth);
   const handlePdfHeightChange = handleInputChangeWith(setPdfHeight);
   const handlePdfBackgroundColorChange = handleInputChangeWith(setPdfBackgroundColor);
+  const handleFilenameChange = handleInputChangeWith(setFilename);
 
   const handleCheckboxChangeWith = (setState) => (event) => setState(event.target.checked);
   const handleDisplayPageNumbers = handleCheckboxChangeWith(setDisplayPageNumbers)
@@ -158,6 +160,15 @@ function App() {
 
       <h2>2. 출력 설정</h2>
       <ul>
+        <li>
+          파일명:{' '}
+          <input
+            type="text"
+            value={filename}
+            onChange={handleFilenameChange}
+          />
+          .pdf
+        </li>
         <li>
           PDF 크기:{' '}
           <input
