@@ -4,6 +4,8 @@ import { jsPDF } from 'jspdf';
 
 import openTga from './openTga';
 
+const fileCompareFunction = (a, b) => a.name < b.name ? -1 : 1; // `a.name !== b.name` is always `true`
+
 function App() {
   const [completedCount, setCompletedCount] = useState(0);
   const [targetCount, setTargetCount] = useState(0);
@@ -16,14 +18,7 @@ function App() {
   const [displayPageNumbers, setDisplayPageNumbers] = useState(true);
   const [filename, setFilename] = useState('generated');
 
-  const handleFileChange = (event) => {
-    setTgaFiles(
-      [...event.target.files]
-        .sort((a, b) => a.name < b.name ? -1 : 1) // `a.name !== b.name` is always `true`
-    );
-  };
-
-  const handleBuildClick = async () => {
+  const convertImagesAndBuildPdfFile = async () => {
     setIsProgressing(true);
     const begin = new Date().getTime();
 
@@ -129,6 +124,44 @@ function App() {
     setIsProgressing(false);
   };
 
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  }
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+
+    if (!event.dataTransfer.items) {
+      return;
+    }
+
+    const droppedTgaFiles = [...event.dataTransfer.items]
+      .reduce((acc, item) => {
+        if (item.kind !== 'file') {
+          return acc;
+        }
+
+        const file = item.getAsFile();
+        if (/image\/targa/i.test(file.type) || file.name.endsWith('.tga')) {
+          acc.push(file);
+        }
+        return acc;
+      }, [])
+      .sort(fileCompareFunction);
+
+    if (droppedTgaFiles.length) {
+      setTgaFiles(droppedTgaFiles);
+    }
+  };
+
+  const handleFileChange = (event) => {
+    setTgaFiles([...event.target.files].sort(fileCompareFunction));
+  };
+
+  const handleBuildClick = async () => {
+    await convertImagesAndBuildPdfFile();
+  };
+
   const handleInputChangeWith = (setState) => (event) => setState(event.target.value);
   const handlePdfWidthChange = handleInputChangeWith(setPdfWidth);
   const handlePdfHeightChange = handleInputChangeWith(setPdfHeight);
@@ -139,7 +172,10 @@ function App() {
   const handleDisplayPageNumbers = handleCheckboxChangeWith(setDisplayPageNumbers)
 
   return (
-    <div>
+    <div
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       <h1>GenCG HD에서 추출한 이미지 PDF로 묶기</h1>
 
       <h2>1. 이미지 파일 선택</h2>
