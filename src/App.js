@@ -186,12 +186,6 @@ function App() {
         disabled={isProgressing}
         onChange={handleFileChange}
       />
-      <ul>
-        <li>Windows에서는 마지막 파일을 먼저 선택한 뒤, Shift 키를 누른 채로 첫 파일을 클릭합니다.</li>
-        <li>MacOS에서는 첫 파일을 먼저 선택한 뒤, Shift 키를 누른 채로 마지막 파일을 선택합니다.</li>
-        <li>또는 전체 선택(Ctrl+A / {'\u2318'}A)로 현재 폴더의 모든 파일을 선택합니다.</li>
-      </ul>
-
       <ol style={{ maxHeight: '100px', overflowY: 'scroll' }}>
         {tgaFiles.map((file) => <li key={file.name}>{file.name}</li>)}
       </ol>
