@@ -192,6 +192,10 @@ function App() {
         <li>또는 전체 선택(Ctrl+A / {'\u2318'}A)로 현재 폴더의 모든 파일을 선택합니다.</li>
       </ul>
 
+      <ol style={{ maxHeight: '100px', overflowY: 'scroll' }}>
+        {tgaFiles.map((file) => <li key={file.name}>{file.name}</li>)}
+      </ol>
+
       <hr />
 
       <h2>2. 출력 설정</h2>
