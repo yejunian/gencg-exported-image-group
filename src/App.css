@@ -1,38 +1,107 @@
 .App {
+  margin: 0 auto;
+  max-width: 580px;
+  width: 100%;
+  height: 100%;
+
+  line-height: 1.4;
+}
+
+.App * {
+  box-sizing: border-box;
+}
+
+.App h1 {
+  font-size: 1.6rem;
+}
+.App h2 {
+  font-size: 1.3rem;
+}
+.App h3 {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.App ul {
+  padding-left: 1.125rem;
+}
+.App ul li {
+  margin-bottom: 0.5rem;
+}
+
+.App ol.file-list {
+  box-sizing: border-box;
+  padding: 0.25rem 2.5rem;
+  height: 100px;
+  overflow-y: scroll;
+  background-color: #f0f0f0;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+}
+.App ol.file-list > li {
+  line-height: 1.6;
+}
+
+.App ul.rows {
+  padding-left: 0;
+}
+.App ul.rows li {
+  display: flex;
+  height: 30px;
+}
+.App ul.rows li > * {
+  flex-grow: 0;
+  flex-shrink: 0;
+  margin: auto 20px auto 0;
+}
+.App ul.rows li > :last-child {
+  margin-right: 0;
+}
+
+.App hr {
+  margin: 2rem 0;
+  border: none;
+  border-top: 1px solid #c0c0c0;
+}
+
+.App input {
+  padding: 0.25rem 0.5rem;
+}
+
+.App input[type="checkbox"] {
+  margin: auto 0;
+}
+
+.App input[type="color"] {
+  padding: 0;
+  height: 100%;
+}
+
+.App input[type="file"] {
+  padding: 0;
+  width: 100%;
+}
+
+.App .rows .colgroup {
+  display: flex;
+}
+.App .rows .colgroup > * {
+  margin: auto;
+}
+
+.App .rows .col2 {
+  width: 180px;
+}
+
+.App .rows .col4 {
+  width: 380px;
+}
+
+.App .rows .gap {
+  width: 20px;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.App .rows .colauto {
+  flex-grow: 1;
 }

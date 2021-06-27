@@ -4,6 +4,10 @@ import { jsPDF } from 'jspdf';
 
 import openTga from './openTga';
 
+import './App.css';
+
+const fileCompareFunction = (a, b) => a.name < b.name ? -1 : 1; // `a.name !== b.name` is always `true`
+
 function App() {
   const [completedCount, setCompletedCount] = useState(0);
   const [targetCount, setTargetCount] = useState(0);
@@ -14,12 +18,9 @@ function App() {
   const [pdfHeight, setPdfHeight] = useState(540);
   const [pdfBackgroundColor, setPdfBackgroundColor] = useState('#5e5e5e');
   const [displayPageNumbers, setDisplayPageNumbers] = useState(true);
+  const [filename, setFilename] = useState('generated');
 
-  const handleFileChange = async (event) => {
-    setTgaFiles([...event.target.files]);
-  };
-
-  const handleBuildClick = async () => {
+  const convertImagesAndBuildPdfFile = async () => {
     setIsProgressing(true);
     const begin = new Date().getTime();
 
@@ -57,18 +58,22 @@ function App() {
               const compressedPng = await imageCompression(png, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight) });
               const base64Png = await imageCompression.getDataUrlFromFile(compressedPng);
 
-              const jpg = await imageCompression.canvasToFile(canvas, 'image/jpeg');
-              const compressedJpg = await imageCompression(jpg, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight), initialQuality: 0.9 });
+              const compressedJpg = await imageCompression(
+                png,
+                { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight), initialQuality: 0.9, fileType: 'image/jpeg' },
+              );
               const base64Jpg = await imageCompression.getDataUrlFromFile(compressedJpg);
+
+              const pageNumber = Number.parseInt(file.name.replace(/^\D*?(\d+)\.tga$/i, '$1'), 10);
 
               completedCountLocal += 0.09375; // -4, -5; 0.00011
               setCompletedCount(completedCountLocal);
               setDuration(new Date().getTime() - begin);
 
               if (base64Png.length - 22 <= (base64Jpg.length - 23) * 1.1) {
-                resolve(base64Png);
+                resolve({ pageNumber, image: base64Png });
               } else {
-                resolve(base64Jpg);
+                resolve({ pageNumber, image: base64Jpg });
               }
             };
             reader.readAsDataURL(file);
@@ -86,7 +91,7 @@ function App() {
 
     const pdfShortSide = Math.min(pdfWidth, pdfHeight);
     images.forEach(
-      (image, index) => {
+      ({ pageNumber, image }, index) => {
         pdf.addPage()
           .setFillColor(pdfBackgroundColor)
           .rect(-10, -10, pdfWidth + 20, pdfHeight + 20, 'F')
@@ -97,13 +102,23 @@ function App() {
             .setLineWidth(pdfShortSide * 0.015625)
             .setDrawColor('#ffffff')
             .setTextColor('#000000')
-            .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'stroke' })
-            .text(String(index + 1), pdfWidth * 0.9375, pdfHeight * 0.0625, { align: 'right', baseline: 'top', renderingMode: 'fill' });
+            .text(
+              String(pageNumber || (index + 1)),
+              pdfWidth * 0.9375,
+              pdfHeight * 0.0625,
+              { align: 'right', baseline: 'top', renderingMode: 'stroke' },
+            )
+            .text(
+              String(pageNumber || (index + 1)),
+              pdfWidth * 0.9375,
+              pdfHeight * 0.0625,
+              { align: 'right', baseline: 'top', renderingMode: 'fill' },
+            );
         }
       }
     );
 
-    pdf.save();
+    pdf.save(`${filename}.pdf`);
 
     completedCountLocal += 1;
     setCompletedCount(completedCountLocal);
@@ -111,89 +126,178 @@ function App() {
     setIsProgressing(false);
   };
 
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  }
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+
+    if (!event.dataTransfer.items) {
+      return;
+    }
+
+    const droppedTgaFiles = [...event.dataTransfer.items]
+      .reduce((acc, item) => {
+        if (item.kind !== 'file') {
+          return acc;
+        }
+
+        const file = item.getAsFile();
+        if (/image\/targa/i.test(file.type) || file.name.endsWith('.tga')) {
+          acc.push(file);
+        }
+        return acc;
+      }, [])
+      .sort(fileCompareFunction);
+
+    if (droppedTgaFiles.length) {
+      setTgaFiles(droppedTgaFiles);
+    }
+  };
+
+  const handleFileChange = (event) => {
+    setTgaFiles([...event.target.files].sort(fileCompareFunction));
+  };
+
+  const handleBuildClick = async () => {
+    await convertImagesAndBuildPdfFile();
+  };
+
   const handleInputChangeWith = (setState) => (event) => setState(event.target.value);
   const handlePdfWidthChange = handleInputChangeWith(setPdfWidth);
   const handlePdfHeightChange = handleInputChangeWith(setPdfHeight);
   const handlePdfBackgroundColorChange = handleInputChangeWith(setPdfBackgroundColor);
+  const handleFilenameChange = handleInputChangeWith(setFilename);
 
   const handleCheckboxChangeWith = (setState) => (event) => setState(event.target.checked);
   const handleDisplayPageNumbers = handleCheckboxChangeWith(setDisplayPageNumbers)
 
   return (
-    <div>
+    <div
+      className="App"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       <h1>GenCG HD에서 추출한 이미지 PDF로 묶기</h1>
 
       <h2>1. 이미지 파일 선택</h2>
-      <input
-        type="file"
-        accept="image/x-targa,image/x-tga"
-        multiple={true}
-        disabled={isProgressing}
-        onChange={handleFileChange}
-      />
-      <ul>
-        <li>Windows에서는 마지막 파일을 먼저 선택한 뒤, Shift 키를 누른 채로 첫 파일을 클릭합니다.</li>
-        <li>MacOS에서는 첫 파일을 먼저 선택한 뒤, Shift 키를 누른 채로 마지막 파일을 선택합니다.</li>
-        <li>또는 전체 선택(Ctrl+A / {'\u2318'}A)로 현재 폴더의 모든 파일을 선택합니다.</li>
-      </ul>
+
+      <div>
+        <input
+          type="file"
+          accept="image/x-targa,image/x-tga,.tga"
+          multiple={true}
+          disabled={isProgressing}
+          onChange={handleFileChange}
+        />
+      </div>
+
+      <h3 style={{ marginBottom: '0.25rem' }}>
+        * 파일 {tgaFiles.length}개 선택됨
+      </h3>
+      <ol className="file-list" style={{ marginTop: '0.25rem' }}>
+        {tgaFiles.map((file) => <li key={file.name}>{file.name}</li>)}
+      </ol>
 
       <hr />
 
       <h2>2. 출력 설정</h2>
-      <ul>
+
+      <ul className="rows">
         <li>
-          PDF 크기:{' '}
-          <input
-            type="number"
-            value={pdfWidth}
-            onChange={handlePdfWidthChange}
-          />
-          {' x '}
-          <input
-            type="number"
-            value={pdfHeight}
-            onChange={handlePdfHeightChange}
-          />
+          <span className="col2">파일명</span>
+          <span className="colgroup">
+            <input
+              className="col2"
+              type="text"
+              value={filename}
+              onChange={handleFilenameChange}
+            />
+            <small>.pdf</small>
+          </span>
         </li>
+
         <li>
-          배경색:{' '}
+          <span className="col2">PDF 크기</span>
+          <span className="colgroup">
+            <input
+              className="col2"
+              type="number"
+              value={pdfWidth}
+              onChange={handlePdfWidthChange}
+            />
+            <span className="gap">x</span>
+            <input
+              className="col2"
+              type="number"
+              value={pdfHeight}
+              onChange={handlePdfHeightChange}
+            />
+          </span>
+        </li>
+
+        <li>
+          <span className="col2">배경색</span>
           <input
+            className="col2"
             type="color"
             value={pdfBackgroundColor}
             onChange={handlePdfBackgroundColorChange}
           />
-          {' ' + pdfBackgroundColor}
+          <small className="col2">{pdfBackgroundColor}</small>
         </li>
-        <li>페이지 번호 표시: <input type="checkbox" checked={displayPageNumbers} onChange={handleDisplayPageNumbers} /></li>
+
+        <li>
+          <span className="col2">페이지 번호 표시</span>
+          <label className="col4">
+            <input
+              type="checkbox"
+              checked={displayPageNumbers}
+              onChange={handleDisplayPageNumbers}
+            />
+          </label>
+        </li>
       </ul>
 
       <hr />
 
       <h2>3. PDF 생성</h2>
+
       <ul>
-        <li>아직 메모리 최적화가 안 되어서 메모리를 많이 사용합니다. PDF 생성 완료 후에는 쾌적한 기기 사용을 위해 탭을 닫는 것을 권장합니다.</li>
+        <li>
+          아직 메모리 최적화가 안 되어서 메모리를 많이 사용합니다.
+          PDF 생성 완료 후에는 쾌적한 기기 사용을 위해 탭을 닫는 것을 권장합니다.
+        </li>
         <li>배터리를 사용하는 경우 배터리 소모가 많을 수 있습니다.</li>
       </ul>
-      <p>
-        <button
-          type="button"
-          disabled={isProgressing || tgaFiles.length === 0}
-          onClick={handleBuildClick}
-        >
-          PDF 생성
-        </button>
-        {' '}
-        {targetCount > 0 &&
-          <>
-            <progress value={completedCount} max={targetCount}>
-              {Math.floor(completedCount / targetCount * 100)}%
-            </progress>
-            {' '}
-            {(completedCount / targetCount * 100).toFixed(2)}%
-            {' '}
-            ({Math.floor(duration / 1000)}초 경과)
-          </>}
-      </p>
+
+      <ul className="rows">
+        <li>
+          <button
+            className="col2"
+            type="button"
+            disabled={isProgressing || tgaFiles.length === 0}
+            onClick={handleBuildClick}
+          >
+            PDF 생성
+          </button>
+
+          {targetCount > 0 &&
+            <>
+              <progress
+                className="col2"
+                value={completedCount}
+                max={targetCount}
+              >
+                {Math.floor(completedCount / targetCount * 100)}%
+              </progress>
+              <small className="col2">
+                {(completedCount / targetCount * 100).toFixed(2)}%까지 {Math.floor(duration / 1000)}초 경과
+              </small>
+            </>}
+        </li>
+      </ul>
     </div>
   );
 }
