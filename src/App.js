@@ -4,6 +4,8 @@ import { jsPDF } from 'jspdf';
 
 import openTga from './openTga';
 
+import './App.css';
+
 const fileCompareFunction = (a, b) => a.name < b.name ? -1 : 1; // `a.name !== b.name` is always `true`
 
 function App() {
