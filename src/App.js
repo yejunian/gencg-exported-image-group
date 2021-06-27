@@ -173,67 +173,95 @@ function App() {
 
   return (
     <div
+      className="App"
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
       <h1>GenCG HD에서 추출한 이미지 PDF로 묶기</h1>
 
       <h2>1. 이미지 파일 선택</h2>
-      <input
-        type="file"
-        accept="image/x-targa,image/x-tga,.tga"
-        multiple={true}
-        disabled={isProgressing}
-        onChange={handleFileChange}
-      />
-      <ol style={{ maxHeight: '100px', overflowY: 'scroll' }}>
+
+      <div>
+        <input
+          type="file"
+          accept="image/x-targa,image/x-tga,.tga"
+          multiple={true}
+          disabled={isProgressing}
+          onChange={handleFileChange}
+        />
+      </div>
+
+      <h3 style={{ marginBottom: '0.25rem' }}>
+        * 파일 {tgaFiles.length}개 선택됨
+      </h3>
+      <ol className="file-list" style={{ marginTop: '0.25rem' }}>
         {tgaFiles.map((file) => <li key={file.name}>{file.name}</li>)}
       </ol>
 
       <hr />
 
       <h2>2. 출력 설정</h2>
-      <ul>
+
+      <ul className="rows">
         <li>
-          파일명:{' '}
-          <input
-            type="text"
-            value={filename}
-            onChange={handleFilenameChange}
-          />
-          .pdf
+          <span className="col2">파일명</span>
+          <span className="colgroup">
+            <input
+              className="col2"
+              type="text"
+              value={filename}
+              onChange={handleFilenameChange}
+            />
+            <small>.pdf</small>
+          </span>
         </li>
+
         <li>
-          PDF 크기:{' '}
-          <input
-            type="number"
-            value={pdfWidth}
-            onChange={handlePdfWidthChange}
-          />
-          {' x '}
-          <input
-            type="number"
-            value={pdfHeight}
-            onChange={handlePdfHeightChange}
-          />
+          <span className="col2">PDF 크기</span>
+          <span className="colgroup">
+            <input
+              className="col2"
+              type="number"
+              value={pdfWidth}
+              onChange={handlePdfWidthChange}
+            />
+            <span className="gap">x</span>
+            <input
+              className="col2"
+              type="number"
+              value={pdfHeight}
+              onChange={handlePdfHeightChange}
+            />
+          </span>
         </li>
+
         <li>
-          배경색:{' '}
+          <span className="col2">배경색</span>
           <input
+            className="col2"
             type="color"
             value={pdfBackgroundColor}
             onChange={handlePdfBackgroundColorChange}
           />
-          {' ' + pdfBackgroundColor}
+          <small className="col2">{pdfBackgroundColor}</small>
         </li>
+
         <li>
-          페이지 번호 표시: <input type="checkbox" checked={displayPageNumbers} onChange={handleDisplayPageNumbers} />
+          <span className="col2">페이지 번호 표시</span>
+          <label className="col4">
+            <input
+              type="checkbox"
+              checked={displayPageNumbers}
+              onChange={handleDisplayPageNumbers}
+            />
+          </label>
         </li>
       </ul>
 
       <hr />
 
       <h2>3. PDF 생성</h2>
+
       <ul>
         <li>
           아직 메모리 최적화가 안 되어서 메모리를 많이 사용합니다.
@@ -241,24 +269,33 @@ function App() {
         </li>
         <li>배터리를 사용하는 경우 배터리 소모가 많을 수 있습니다.</li>
       </ul>
-      <p>
-        <button
-          type="button"
-          disabled={isProgressing || tgaFiles.length === 0}
-          onClick={handleBuildClick}
-        >
-          PDF 생성
-        </button>
-        {' '}
-        {targetCount > 0 &&
-          <>
-            <progress value={completedCount} max={targetCount}>
-              {Math.floor(completedCount / targetCount * 100)}%
-            </progress>
-            {' '}
-            {(completedCount / targetCount * 100).toFixed(2)}%까지 {Math.floor(duration / 1000)}초 경과
-          </>}
-      </p>
+
+      <ul className="rows">
+        <li>
+          <button
+            className="col2"
+            type="button"
+            disabled={isProgressing || tgaFiles.length === 0}
+            onClick={handleBuildClick}
+          >
+            PDF 생성
+          </button>
+
+          {targetCount > 0 &&
+            <>
+              <progress
+                className="col2"
+                value={completedCount}
+                max={targetCount}
+              >
+                {Math.floor(completedCount / targetCount * 100)}%
+              </progress>
+              <small className="col2">
+                {(completedCount / targetCount * 100).toFixed(2)}%까지 {Math.floor(duration / 1000)}초 경과
+              </small>
+            </>}
+        </li>
+      </ul>
     </div>
   );
 }
