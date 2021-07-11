@@ -2,7 +2,7 @@ import { useState } from 'react';
 import imageCompression from 'browser-image-compression';
 import { jsPDF } from 'jspdf';
 
-import openTga from './openTga';
+import loadTga from './loadTga';
 
 import './App.css';
 
@@ -38,31 +38,30 @@ function App() {
               setCompletedCount(completedCountLocal);
               setDuration(new Date().getTime() - begin);
 
-              const tga = await openTga(progressEvent.target.result);
+              const imageData = await loadTga(new Uint8Array(progressEvent.target.result));
 
               completedCountLocal += 0.5625; // -1, -4; 0.1001
               setCompletedCount(completedCountLocal);
               setDuration(new Date().getTime() - begin);
 
-              const tgaCanvas = tga.getCanvas();
               const canvas = document.createElement('canvas');
-              canvas.width = tgaCanvas.width;
-              canvas.height = tgaCanvas.height;
+              canvas.width = imageData.width;
+              canvas.height = imageData.height;
 
               const ctx = canvas.getContext('2d');
               ctx.fillStyle = pdfBackgroundColor;
               ctx.fillRect(-10, -10, canvas.width + 20, canvas.height + 20);
-              ctx.drawImage(tgaCanvas, 0, 0, canvas.width, canvas.height);
+              ctx.putImageData(imageData, 0, 0);
 
               const png = await imageCompression.canvasToFile(canvas, 'image/png');
               const compressedPng = await imageCompression(png, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight) });
-              const base64Png = await imageCompression.getDataUrlFromFile(compressedPng);
+              const pngImageData = new Uint8Array(await compressedPng.arrayBuffer());
 
               const compressedJpg = await imageCompression(
                 png,
                 { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight), initialQuality: 0.9, fileType: 'image/jpeg' },
               );
-              const base64Jpg = await imageCompression.getDataUrlFromFile(compressedJpg);
+              const jpgImageData = new Uint8Array(await compressedJpg.arrayBuffer());
 
               const pageNumber = Number.parseInt(file.name.replace(/^\D*?(\d+)\.tga$/i, '$1'), 10);
 
@@ -70,13 +69,13 @@ function App() {
               setCompletedCount(completedCountLocal);
               setDuration(new Date().getTime() - begin);
 
-              if (base64Png.length - 22 <= (base64Jpg.length - 23) * 1.1) {
-                resolve({ pageNumber, image: base64Png });
+              if (pngImageData.length <= jpgImageData.length * 1.1) {
+                resolve({ pageNumber, image: pngImageData });
               } else {
-                resolve({ pageNumber, image: base64Jpg });
+                resolve({ pageNumber, image: jpgImageData });
               }
             };
-            reader.readAsDataURL(file);
+            reader.readAsArrayBuffer(file);
           }
         )
       )
