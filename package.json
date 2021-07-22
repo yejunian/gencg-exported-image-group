@@ -1,6 +1,6 @@
 {
   "name": "gencg-exported-image-group",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Convert TGA files exported by GenCG to single PDF file",
   "homepage": "https://leeye51456.github.io/gencg-exported-image-group/",
   "bugs": "https://github.com/leeye51456/gencg-exported-image-group/issues",
