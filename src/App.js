@@ -1,17 +1,15 @@
 import { useState } from 'react';
-import imageCompression from 'browser-image-compression';
-import { jsPDF } from 'jspdf';
 
-import loadTga from './loadTga';
-
+import buildAndDownloadPdf from './buildAndDownloadPdf';
 import './App.css';
 
 const fileCompareFunction = (a, b) => a.name < b.name ? -1 : 1; // `a.name !== b.name` is always `true`
 
 function App() {
-  const [completedCount, setCompletedCount] = useState(0);
-  const [targetCount, setTargetCount] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [task, setTask] = useState('');
+  const [progressRatio, setProgressRatio] = useState(0);
+  const [startTime, setStartTime] = useState(0);
+  const [now, setNow] = useState(0);
   const [isProgressing, setIsProgressing] = useState(false);
   const [tgaFiles, setTgaFiles] = useState([]);
   const [pdfWidth, setPdfWidth] = useState(960);
@@ -20,114 +18,36 @@ function App() {
   const [displayPageNumbers, setDisplayPageNumbers] = useState(true);
   const [filename, setFilename] = useState('generated');
 
+  const updateProgressState = ({ task, progress }) => {
+    if (typeof task === 'string') {
+      setTask(task);
+    }
+
+    setProgressRatio(progress);
+    setNow(new Date().getTime());
+  };
+
   const convertImagesAndBuildPdfFile = async () => {
     setIsProgressing(true);
-    const begin = new Date().getTime();
+    setStartTime(new Date().getTime());
 
-    let completedCountLocal = 0;
-    setCompletedCount(0);
-    setTargetCount(tgaFiles.length + 1);
+    updateProgressState('작업 시작', 0);
 
-    const images = await Promise.all(
-      tgaFiles.map(
-        async (file) => new Promise(
-          (resolve) => {
-            const reader = new FileReader();
-            reader.onload = async (progressEvent) => {
-              completedCountLocal += 0.34375; // -2, -4, -5; 0.01011
-              setCompletedCount(completedCountLocal);
-              setDuration(new Date().getTime() - begin);
-
-              const imageData = await loadTga(new Uint8Array(progressEvent.target.result));
-
-              completedCountLocal += 0.5625; // -1, -4; 0.1001
-              setCompletedCount(completedCountLocal);
-              setDuration(new Date().getTime() - begin);
-
-              const canvas = document.createElement('canvas');
-              canvas.width = imageData.width;
-              canvas.height = imageData.height;
-
-              const ctx = canvas.getContext('2d');
-              ctx.fillStyle = pdfBackgroundColor;
-              ctx.fillRect(-10, -10, canvas.width + 20, canvas.height + 20);
-              ctx.putImageData(imageData, 0, 0);
-
-              const png = await imageCompression.canvasToFile(canvas, 'image/png');
-              const compressedPng = await imageCompression(png, { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight) });
-              const pngImageData = new Uint8Array(await compressedPng.arrayBuffer());
-
-              const compressedJpg = await imageCompression(
-                png,
-                { maxWidthOrHeight: Math.max(pdfWidth, pdfHeight), initialQuality: 0.9, fileType: 'image/jpeg' },
-              );
-              const jpgImageData = new Uint8Array(await compressedJpg.arrayBuffer());
-
-              const pageNumber = Number.parseInt(file.name.replace(/^\D*?(\d+)\.tga$/i, '$1'), 10);
-
-              completedCountLocal += 0.09375; // -4, -5; 0.00011
-              setCompletedCount(completedCountLocal);
-              setDuration(new Date().getTime() - begin);
-
-              if (pngImageData.length <= jpgImageData.length * 1.1) {
-                resolve({ pageNumber, image: pngImageData });
-              } else {
-                resolve({ pageNumber, image: jpgImageData });
-              }
-            };
-            reader.readAsArrayBuffer(file);
-          }
-        )
-      )
-    );
-
-    const pdf = new jsPDF({
-      orientation: pdfWidth >= pdfHeight ? 'landscape' : 'portrait',
-      unit: 'pt',
-      format: [pdfWidth, pdfHeight],
+    buildAndDownloadPdf(tgaFiles, {
+      updateProgressState,
+      displayPageNumbers,
+      filename,
+      width: pdfWidth,
+      height: pdfHeight,
+      backgroundColor: pdfBackgroundColor,
     });
-    pdf.deletePage(1);
 
-    const pdfShortSide = Math.min(pdfWidth, pdfHeight);
-    images.forEach(
-      ({ pageNumber, image }, index) => {
-        pdf.addPage()
-          .setFillColor(pdfBackgroundColor)
-          .rect(-10, -10, pdfWidth + 20, pdfHeight + 20, 'F')
-          .addImage(image, 0, 0, pdfWidth, pdfHeight);
-        if (displayPageNumbers) {
-          pdf.setFont('Helvetica', '', 'Bold')
-            .setFontSize(pdfShortSide * 0.09375)
-            .setLineWidth(pdfShortSide * 0.015625)
-            .setDrawColor('#ffffff')
-            .setTextColor('#000000')
-            .text(
-              String(pageNumber || (index + 1)),
-              pdfWidth * 0.9375,
-              pdfHeight * 0.0625,
-              { align: 'right', baseline: 'top', renderingMode: 'stroke' },
-            )
-            .text(
-              String(pageNumber || (index + 1)),
-              pdfWidth * 0.9375,
-              pdfHeight * 0.0625,
-              { align: 'right', baseline: 'top', renderingMode: 'fill' },
-            );
-        }
-      }
-    );
-
-    pdf.save(`${filename}.pdf`);
-
-    completedCountLocal += 1;
-    setCompletedCount(completedCountLocal);
-    setDuration(new Date().getTime() - begin);
     setIsProgressing(false);
   };
 
   const handleDragOver = (event) => {
     event.preventDefault();
-  }
+  };
 
   const handleDrop = (event) => {
     event.preventDefault();
@@ -282,17 +202,17 @@ function App() {
             PDF 생성
           </button>
 
-          {targetCount > 0 &&
+          {task !== '' &&
             <>
               <progress
                 className="col2"
-                value={completedCount}
-                max={targetCount}
+                value={progressRatio}
+                max={1}
               >
-                {Math.floor(completedCount / targetCount * 100)}%
+                {Math.floor(progressRatio * 100)}%
               </progress>
               <small className="col2">
-                {(completedCount / targetCount * 100).toFixed(2)}%까지 {Math.floor(duration / 1000)}초 경과
+                {(progressRatio * 100).toFixed(2)}%까지 {((now - startTime) / 1000).toFixed(1)}초 경과
               </small>
             </>}
         </li>
