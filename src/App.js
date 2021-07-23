@@ -31,9 +31,9 @@ function App() {
     setIsProgressing(true);
     setStartTime(new Date().getTime());
 
-    updateProgressState('작업 시작', 0);
+    updateProgressState({ task: '작업 시작', progress: 0 });
 
-    buildAndDownloadPdf(tgaFiles, {
+    await buildAndDownloadPdf(tgaFiles, {
       updateProgressState,
       displayPageNumbers,
       filename,
@@ -52,7 +52,7 @@ function App() {
   const handleDrop = (event) => {
     event.preventDefault();
 
-    if (!event.dataTransfer.items) {
+    if (isProgressing || !event.dataTransfer.items) {
       return;
     }
 
@@ -133,6 +133,7 @@ function App() {
               className="col2"
               type="text"
               value={filename}
+              disabled={isProgressing}
               onChange={handleFilenameChange}
             />
             <small>.pdf</small>
@@ -146,6 +147,7 @@ function App() {
               className="col2"
               type="number"
               value={pdfWidth}
+              disabled={isProgressing}
               onChange={handlePdfWidthChange}
             />
             <span className="gap">x</span>
@@ -153,6 +155,7 @@ function App() {
               className="col2"
               type="number"
               value={pdfHeight}
+              disabled={isProgressing}
               onChange={handlePdfHeightChange}
             />
           </span>
@@ -164,6 +167,7 @@ function App() {
             className="col2"
             type="color"
             value={pdfBackgroundColor}
+            disabled={isProgressing}
             onChange={handlePdfBackgroundColorChange}
           />
           <small className="col2">{pdfBackgroundColor}</small>
@@ -175,6 +179,7 @@ function App() {
             <input
               type="checkbox"
               checked={displayPageNumbers}
+              disabled={isProgressing}
               onChange={handleDisplayPageNumbers}
             />
           </label>
