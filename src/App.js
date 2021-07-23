@@ -76,7 +76,9 @@ function App() {
   };
 
   const handleFileChange = (event) => {
-    setTgaFiles([...event.target.files].sort(fileCompareFunction));
+    if (event.target.files.length) {
+      setTgaFiles([...event.target.files].sort(fileCompareFunction));
+    }
   };
 
   const handleBuildClick = async () => {
