@@ -31,9 +31,9 @@ function App() {
     setIsProgressing(true);
     setStartTime(new Date().getTime());
 
-    updateProgressState('작업 시작', 0);
+    updateProgressState({ task: '작업 시작', progress: 0 });
 
-    buildAndDownloadPdf(tgaFiles, {
+    await buildAndDownloadPdf(tgaFiles, {
       updateProgressState,
       displayPageNumbers,
       filename,
@@ -52,7 +52,7 @@ function App() {
   const handleDrop = (event) => {
     event.preventDefault();
 
-    if (!event.dataTransfer.items) {
+    if (isProgressing || !event.dataTransfer.items) {
       return;
     }
 
@@ -76,7 +76,9 @@ function App() {
   };
 
   const handleFileChange = (event) => {
-    setTgaFiles([...event.target.files].sort(fileCompareFunction));
+    if (event.target.files.length) {
+      setTgaFiles([...event.target.files].sort(fileCompareFunction));
+    }
   };
 
   const handleBuildClick = async () => {
@@ -131,6 +133,7 @@ function App() {
               className="col2"
               type="text"
               value={filename}
+              disabled={isProgressing}
               onChange={handleFilenameChange}
             />
             <small>.pdf</small>
@@ -144,6 +147,7 @@ function App() {
               className="col2"
               type="number"
               value={pdfWidth}
+              disabled={isProgressing}
               onChange={handlePdfWidthChange}
             />
             <span className="gap">x</span>
@@ -151,6 +155,7 @@ function App() {
               className="col2"
               type="number"
               value={pdfHeight}
+              disabled={isProgressing}
               onChange={handlePdfHeightChange}
             />
           </span>
@@ -162,6 +167,7 @@ function App() {
             className="col2"
             type="color"
             value={pdfBackgroundColor}
+            disabled={isProgressing}
             onChange={handlePdfBackgroundColorChange}
           />
           <small className="col2">{pdfBackgroundColor}</small>
@@ -173,6 +179,7 @@ function App() {
             <input
               type="checkbox"
               checked={displayPageNumbers}
+              disabled={isProgressing}
               onChange={handleDisplayPageNumbers}
             />
           </label>
@@ -184,10 +191,7 @@ function App() {
       <h2>3. PDF 생성</h2>
 
       <ul>
-        <li>
-          아직 메모리 최적화가 안 되어서 메모리를 많이 사용합니다.
-          PDF 생성 완료 후에는 쾌적한 기기 사용을 위해 탭을 닫는 것을 권장합니다.
-        </li>
+        <li>PDF 생성 완료 후에는 쾌적한 기기 사용을 위해 이 탭을 닫는 것을 권장합니다.</li>
         <li>배터리를 사용하는 경우 배터리 소모가 많을 수 있습니다.</li>
       </ul>
 
