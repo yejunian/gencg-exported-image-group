@@ -48,6 +48,46 @@ GenCG에서 내보낸 TGA 파일을 단일 PDF 파일로 변환합니다. (한�
 
 ---
 
+## 작동 방식
+
+### 사용자 입장에서의 작동 흐름
+
+![](doc/diagrams-end-user.drawio.png)
+
+- TGA 파일을 PDF로 변환 중인 상태가 아니라면, 언제든지 파일을 (다시) 선택하거나 출력 설정을 변경할 수 있습니다.
+- 파일을 선택한 상태에서 ‘PDF 생성’ 버튼을 클릭하면 선택한 TGA 이미지를 PDF로 변환 중인 상태가 됩니다. 이 상태에서는 파일을 다시 선택하거나 출력 설정을 변경할 수 없습니다.
+- TGA → PDF 변환 작업을 완료하여 PDF 파일을 저장하고 나면, 다시 파일을 선택하거나 출력 설정을 변경할 수 있는 상태로 돌아옵니다.
+
+### 파일 선택
+
+![](doc/diagrams-file-select.drawio.png)
+
+- 두 가지 방법으로 TGA 파일을 선택할 수 있습니다.
+  1. Drag and drop을 이용한 선택: 넘겨받는 파일 중 `*.tga` 파일만 걸러냅니다.
+  2. `<input type="file">`을 통한 선택: `*.tga` 파일만 선택할 수 있도록 제한이 걸려 있습니다.
+- 파일을 선택하면, 선택한 파일들을 이름의 오름차순으로 정렬합니다. 이 순서대로 ‘선택된 파일’ 상태를 업데이트합니다.
+
+### PDF 생성 과정
+
+![](doc/diagrams-pdf-build.drawio.png)
+
+- PDF 생성 명령이 들어오면 파일 목록이나 설정이 꼬이는 것을 방지하기 위해 UI를 잠급니다. 작업이 끝나고 나면 UI 잠금을 해제합니다.
+- PDF 문서는 [jspdf](https://www.npmjs.com/package/jspdf)를 활용하여 생성합니다. 그 과정은 다음과 같습니다.
+  1. 모든 이미지를 PDF에 그릴 때까지 다음 작업을 반복합니다.
+     1. PDF 문서 초기화
+     2. 새 페이지에 들어갈 이미지 변환 (TGA to PNG/JPEG)
+     3. PDF 문서에 새 페이지 추가
+     4. 추가한 페이지에 배경, 이미지, 페이지 번호 그리기
+  2. PDF 파일 저장
+- 이미지 변환은 [tga-js](https://www.npmjs.com/package/tga-js), [browser-image-compression](https://www.npmjs.com/package/browser-image-compression), HTML Canvas를 활용하여 진행합니다. 그 과정은 다음과 같습니다.
+  1. TGA 파일을 `ArrayBuffer`로 로드합니다. 이 `ArrayBuffer`를 `Uint8Array`로 변환합니다.
+  2. tga-js를 이용하여, TGA 파일의 raw 데이터를 담은 `Uint8Array`를 `ImageData`로 변환합니다.
+  3. HTML Canvas 엘리먼트를 생성하고, 배경색과 앞서 얻은 `ImageData`를 Canvas에 그립니다.
+  4. browser-image-compression으로 이 Canvas의 크기를 축소하면서 PNG와 JPEG으로 압축합니다.
+  5. PNG와 JPEG 중 더 나은 쪽을 선택합니다.
+
+---
+
 ## 개발용 스크립트 설명<small>(Create React App에서 생성한 내용)</small>
 
 In the project directory, you can run:
