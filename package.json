@@ -2,16 +2,16 @@
   "name": "gencg-exported-image-group",
   "version": "1.2.1",
   "description": "Convert TGA files exported by GenCG to single PDF file",
-  "homepage": "https://leeye51456.github.io/gencg-exported-image-group/",
-  "bugs": "https://github.com/leeye51456/gencg-exported-image-group/issues",
+  "homepage": "https://yejunian.github.io/gencg-exported-image-group/",
+  "bugs": "https://github.com/yejunian/gencg-exported-image-group/issues",
   "license": "MIT",
   "author": {
-    "name": "leeye51456",
-    "url": "https://github.com/leeye51456"
+    "name": "yejunian",
+    "url": "https://github.com/yejunian"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/leeye51456/gencg-exported-image-group"
+    "url": "https://github.com/yejunian/gencg-exported-image-group"
   },
   "private": true,
   "dependencies": {

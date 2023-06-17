@@ -4,7 +4,7 @@ Convert TGA files exported by GenCG to single PDF file (Korean only supported)
 
 GenCG에서 내보낸 TGA 파일을 단일 PDF 파일로 변환합니다. (한국어만 지원)
 
-[https://leeye51456.github.io/gencg-exported-image-group/](https://leeye51456.github.io/gencg-exported-image-group/)
+[https://yejunian.github.io/gencg-exported-image-group/](https://yejunian.github.io/gencg-exported-image-group/)
 
 ---
 
@@ -25,7 +25,7 @@ GenCG에서 내보낸 TGA 파일을 단일 PDF 파일로 변환합니다. (한�
 
 ### 1. 이미지 파일 선택
 
-[GenCG HD에서 추출한 이미지 PDF로 묶기](https://leeye51456.github.io/gencg-exported-image-group/) 페이지를 열고, 파일 선택 폼에서 앞서 저장한 TGA 파일을 모두 선택합니다. 파일을 어떤 순서로 선택하든지 파일명 순으로 처리됩니다. 파일을 다시 선택하면 이전에 선택한 파일 대신 새로 선택한 파일만 남습니다.
+[GenCG HD에서 추출한 이미지 PDF로 묶기](https://yejunian.github.io/gencg-exported-image-group/) 페이지를 열고, 파일 선택 폼에서 앞서 저장한 TGA 파일을 모두 선택합니다. 파일을 어떤 순서로 선택하든지 파일명 순으로 처리됩니다. 파일을 다시 선택하면 이전에 선택한 파일 대신 새로 선택한 파일만 남습니다.
 
 ### 2. 출력 설정
 
