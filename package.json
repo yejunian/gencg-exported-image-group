@@ -1,32 +1,29 @@
 {
   "name": "gencg-exported-image-group",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Convert TGA files exported by GenCG to single PDF file",
-  "homepage": "https://leeye51456.github.io/gencg-exported-image-group/",
-  "bugs": "https://github.com/leeye51456/gencg-exported-image-group/issues",
+  "homepage": "https://yejunian.github.io/gencg-exported-image-group/",
+  "bugs": "https://github.com/yejunian/gencg-exported-image-group/issues",
   "license": "MIT",
   "author": {
-    "name": "leeye51456",
-    "url": "https://github.com/leeye51456"
+    "name": "yejunian",
+    "url": "https://github.com/yejunian"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/leeye51456/gencg-exported-image-group"
+    "url": "https://github.com/yejunian/gencg-exported-image-group"
   },
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.11.4",
-    "@testing-library/react": "^11.1.0",
-    "@testing-library/user-event": "^12.1.10",
     "browser-image-compression": "^1.0.14",
     "jspdf": "^2.3.1",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-scripts": "4.0.3",
-    "tga-js": "^1.1.1",
-    "web-vitals": "^1.0.1"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "tga-js": "^1.1.1"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "gh-pages": "^3.2.0"
   },
   "scripts": {
