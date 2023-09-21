@@ -102,6 +102,17 @@ function App() {
     >
       <h1>GenCG HD에서 추출한 이미지 PDF로 묶기</h1>
 
+      <a
+        className="note-deprecated"
+        href="https://yejunian.github.io/img-seq-pack/"
+      >
+        <h2>안내</h2>
+        <p>
+          처리가 더 빠르면서 다양한 이미지 포맷을 지원하는{' '}
+          ‘<em>img-seq-pack</em>’을 사용하세요!
+        </p>
+      </a>
+
       <h2>1. 이미지 파일 선택</h2>
 
       <div>
